@@ -1,0 +1,37 @@
+server:
+  port: "8080"
+  mode: "debug"  # debug or release
+
+database:
+  driver: "postgres"
+  host: "localhost"
+  port: "5432"
+  name: "quizme_go_db"
+  user: "postgres"
+  password: "ha"
+  sslmode: "disable"
+
+jwt:
+  secret: "b1ca9c90bef9eb16e8ebeff67280d819cda081ccebcaaeef3f5162d593c8427658f127ccd88caa5c74e3c0b60de0a821587d08ff602fcb5a0f81081437d4e20b"
+  expiration_ms: 86400000        # 1 day (Access Token)
+  refresh_expiration_ms: 2592000000  # 30 days (Refresh Token)
+
+cors:
+  allowed_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+
+upload:
+  path: "./uploads"
+
+cloudinary:
+  cloud_name: ""
+  api_key: ""
+  api_secret: ""
+  base_url: "https://res.cloudinary.com/"
+  folder:
+    profile-avatar: "quizme/profile-avatars"
+    quiz-thumbnails: "quizme/quiz-thumbnails"
+    question-images: "quizme/question-images"
+    question-audios: "quizme/question-audios"
+    category-icons: "quizme/category-icons"
