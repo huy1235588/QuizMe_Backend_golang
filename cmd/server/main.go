@@ -10,25 +10,47 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/huy/quizme-backend/internal/config"
-	"github.com/huy/quizme-backend/internal/handler"
-	"github.com/huy/quizme-backend/internal/middleware"
+	infraconfig "github.com/huy/quizme-backend/internal/infra/config"
+	infraMiddleware "github.com/huy/quizme-backend/internal/infra/middleware"
+	infrarouter "github.com/huy/quizme-backend/internal/infra/router"
+	infrastorage "github.com/huy/quizme-backend/internal/infra/storage"
 	"github.com/huy/quizme-backend/internal/pkg/jwt"
-	"github.com/huy/quizme-backend/internal/repository"
-	"github.com/huy/quizme-backend/internal/service"
-	"github.com/huy/quizme-backend/internal/service/storage"
-	"github.com/huy/quizme-backend/internal/websocket"
+
+	authhandler "github.com/huy/quizme-backend/internal/features/auth/handler"
+	authrepo "github.com/huy/quizme-backend/internal/features/auth/repository"
+	authservice "github.com/huy/quizme-backend/internal/features/auth/service"
+
+	categoryhandler "github.com/huy/quizme-backend/internal/features/category/handler"
+	categoryrepo "github.com/huy/quizme-backend/internal/features/category/repository"
+	categoryservice "github.com/huy/quizme-backend/internal/features/category/service"
+
+	gamehandler "github.com/huy/quizme-backend/internal/features/game/handler"
+	gamerepo "github.com/huy/quizme-backend/internal/features/game/repository"
+	gameservice "github.com/huy/quizme-backend/internal/features/game/service"
+	gamewebsocket "github.com/huy/quizme-backend/internal/features/game/websocket"
+
+	quizhandler "github.com/huy/quizme-backend/internal/features/quiz/handler"
+	quizrepo "github.com/huy/quizme-backend/internal/features/quiz/repository"
+	quizservice "github.com/huy/quizme-backend/internal/features/quiz/service"
+
+	roomhandler "github.com/huy/quizme-backend/internal/features/room/handler"
+	roomrepo "github.com/huy/quizme-backend/internal/features/room/repository"
+	roomservice "github.com/huy/quizme-backend/internal/features/room/service"
+
+	userhandler "github.com/huy/quizme-backend/internal/features/user/handler"
+	userrepo "github.com/huy/quizme-backend/internal/features/user/repository"
+	userservice "github.com/huy/quizme-backend/internal/features/user/service"
 )
 
 func main() {
 	// Load configuration
-	cfg, err := config.LoadConfig(".")
+	cfg, err := infraconfig.LoadConfig(".")
 	if err != nil {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
 	// Initialize database
-	db, err := config.InitDatabase(cfg)
+	db, err := infraconfig.InitDatabase(cfg)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
@@ -37,69 +59,91 @@ func main() {
 	jwtProvider := jwt.NewJWTProvider(cfg.JWT.Secret, cfg.JWT.ExpirationMs, cfg.JWT.RefreshExpirationMs)
 
 	// Initialize Cloudinary service
-	cloudinaryService, err := storage.NewCloudinaryService(cfg)
+	cloudinaryService, err := infrastorage.NewCloudinaryService(cfg)
 	if err != nil {
 		log.Printf("Warning: Failed to initialize Cloudinary service: %v", err)
 		cloudinaryService = nil // Continue without Cloudinary
 	}
 
-	// Initialize repositories
-	userRepo := repository.NewUserRepository(db)
-	userProfileRepo := repository.NewUserProfileRepository(db)
-	refreshTokenRepo := repository.NewRefreshTokenRepository(db)
-	categoryRepo := repository.NewCategoryRepository(db)
-	quizRepo := repository.NewQuizRepository(db)
-	questionRepo := repository.NewQuestionRepository(db)
-	questionOptionRepo := repository.NewQuestionOptionRepository(db)
-	roomRepo := repository.NewRoomRepository(db)
-	roomParticipantRepo := repository.NewRoomParticipantRepository(db)
-	roomChatRepo := repository.NewRoomChatRepository(db)
-	gameResultRepo := repository.NewGameResultRepository(db)
-	gamePlayerAnswerRepo := repository.NewGamePlayerAnswerRepository(db)
+	// Initialize Repositories
+	// Auth repositories
+	authUserRepo := authrepo.NewUserRepository(db)
+	authUserProfileRepo := authrepo.NewUserProfileRepository(db)
+	authRefreshTokenRepo := authrepo.NewRefreshTokenRepository(db)
+
+	// User repositories
+	userUserRepo := userrepo.NewUserRepository(db)
+	userProfileRepo := userrepo.NewUserProfileRepository(db)
+
+	// Category repositories
+	categoryRepo := categoryrepo.NewCategoryRepository(db)
+
+	// Quiz repositories
+	quizRepo := quizrepo.NewQuizRepository(db)
+	questionRepo := quizrepo.NewQuestionRepository(db)
+	questionOptionRepo := quizrepo.NewQuestionOptionRepository(db)
+
+	// Room repositories
+	roomRoomRepo := roomrepo.NewRoomRepository(db)
+	roomParticipantRepo := roomrepo.NewRoomParticipantRepository(db)
+	roomChatRepo := roomrepo.NewRoomChatRepository(db)
+
+	// Game repositories
+	gameResultRepo := gamerepo.NewGameResultRepository(db)
+	gamePlayerAnswerRepo := gamerepo.NewGamePlayerAnswerRepository(db)
 
 	// Initialize WebSocket hub
-	wsHub := websocket.NewHub()
+	wsHub := gamewebsocket.NewHub()
 	go wsHub.Run()
 
-	// Initialize services
-	authService := service.NewAuthService(userRepo, userProfileRepo, refreshTokenRepo, jwtProvider)
-	userService := service.NewUserService(userRepo, userProfileRepo)
-	categoryService := service.NewCategoryService(categoryRepo)
-	quizService := service.NewQuizService(quizRepo, questionRepo, questionOptionRepo, categoryRepo)
-	questionService := service.NewQuestionService(questionRepo, questionOptionRepo, quizRepo)
-	roomService := service.NewRoomService(roomRepo, roomParticipantRepo, quizRepo, userRepo)
-	chatService := service.NewChatService(roomChatRepo, roomRepo)
+	// Initialize Services
+	// Auth service
+	authSvc := authservice.NewAuthService(authUserRepo, authUserProfileRepo, authRefreshTokenRepo, jwtProvider)
 
-	// Initialize game services
-	gameProgressService := service.NewGameProgressService(quizRepo, questionRepo, questionOptionRepo)
-	gameResultService := service.NewGameResultService(gameResultRepo, gamePlayerAnswerRepo, roomParticipantRepo)
-	gameSessionService := service.NewGameSessionService(
+	// User service
+	userSvc := userservice.NewUserService(userUserRepo, userProfileRepo)
+
+	// Category service
+	categorySvc := categoryservice.NewCategoryService(categoryRepo)
+
+	// Quiz services
+	quizSvc := quizservice.NewQuizService(quizRepo, questionRepo, questionOptionRepo, categoryRepo)
+	questionSvc := quizservice.NewQuestionService(questionRepo, questionOptionRepo, quizRepo)
+
+	// Room services
+	roomSvc := roomservice.NewRoomService(roomRoomRepo, roomParticipantRepo, quizRepo, userUserRepo)
+	chatSvc := roomservice.NewChatService(roomChatRepo, roomRoomRepo)
+
+	// Game services
+	gameProgressSvc := gameservice.NewGameProgressService(quizRepo, questionRepo, questionOptionRepo)
+	gameResultSvc := gameservice.NewGameResultService(gameResultRepo, gamePlayerAnswerRepo, roomParticipantRepo)
+	gameSessionSvc := gameservice.NewGameSessionService(
 		wsHub,
-		gameProgressService,
-		gameResultService,
-		roomRepo,
+		gameProgressSvc,
+		gameResultSvc,
+		roomRoomRepo,
 		roomParticipantRepo,
 		quizRepo,
 	)
 
 	// Initialize middleware
-	authMiddleware := middleware.NewAuthMiddleware(jwtProvider, userRepo)
+	authMiddleware := infraMiddleware.NewAuthMiddleware(jwtProvider, userUserRepo)
 
-	// Initialize handlers
-	authHandler := handler.NewAuthHandler(authService)
-	userHandler := handler.NewUserHandler(userService, cloudinaryService)
-	categoryHandler := handler.NewCategoryHandler(categoryService)
-	quizHandler := handler.NewQuizHandler(quizService)
-	questionHandler := handler.NewQuestionHandler(questionService)
-	roomHandler := handler.NewRoomHandler(roomService)
-	chatHandler := handler.NewChatHandler(chatService)
-	gameHandler := handler.NewGameHandler(gameSessionService, roomService)
-	wsHandler := handler.NewWebSocketHandler(
+	// Initialize Handlers
+	authHandler := authhandler.NewAuthHandler(authSvc)
+	userHandler := userhandler.NewUserHandler(userSvc, cloudinaryService)
+	categoryHandler := categoryhandler.NewCategoryHandler(categorySvc)
+	quizHandler := quizhandler.NewQuizHandler(quizSvc)
+	questionHandler := quizhandler.NewQuestionHandler(questionSvc)
+	roomHandler := roomhandler.NewRoomHandler(roomSvc)
+	chatHandler := roomhandler.NewChatHandler(chatSvc)
+	gameHandler := gamehandler.NewGameHandler(gameSessionSvc, roomSvc)
+	wsHandler := gamehandler.NewWebSocketHandler(
 		wsHub,
 		authMiddleware,
-		gameSessionService,
-		roomService,
-		chatService,
+		gameSessionSvc,
+		roomSvc,
+		chatSvc,
 		roomParticipantRepo,
 	)
 
@@ -109,121 +153,21 @@ func main() {
 	}
 	router := gin.Default()
 
-	// CORS middleware
-	router.Use(middleware.CORSMiddleware(cfg.CORS.AllowedOrigins))
-
-	// WebSocket route
-	router.GET("/ws", wsHandler.HandleConnection)
-
-	// API routes
-	api := router.Group("/api")
-	{
-		// Auth routes (public)
-		auth := api.Group("/auth")
-		{
-			auth.POST("/login", authHandler.Login)
-			auth.POST("/register", authHandler.Register)
-			auth.POST("/logout", authHandler.Logout)
-			auth.POST("/refresh-token", authHandler.RefreshToken)
-		}
-
-		// User routes
-		users := api.Group("/users")
-		{
-			users.GET("/:id", userHandler.GetUserByID)
-			users.GET("/top", userHandler.GetTopUsers)
-			users.GET("/count", userHandler.GetUserCount)
-			users.GET("/paged", userHandler.GetPagedUsers)
-			users.GET("/profile/:id", userHandler.GetUserProfile)
-
-			// Protected routes
-			users.GET("/profile", authMiddleware.RequireAuth(), userHandler.GetCurrentUserProfile)
-			users.POST("/avatar/upload", authMiddleware.RequireAuth(), userHandler.UploadAvatar)
-			users.DELETE("/avatar", authMiddleware.RequireAuth(), userHandler.RemoveAvatar)
-
-			// Admin routes
-			users.POST("/create", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), userHandler.CreateUser)
-			users.PUT("/:id", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), userHandler.UpdateUser)
-			users.DELETE("/:id", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), userHandler.DeleteUser)
-			users.PUT("/:id/lock", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), userHandler.ToggleUserActiveStatus)
-		}
-
-		// Category routes
-		categories := api.Group("/categories")
-		{
-			categories.GET("", categoryHandler.GetAllCategories)
-			categories.GET("/:id", categoryHandler.GetCategoryByID)
-			categories.GET("/active", categoryHandler.GetActiveCategories)
-
-			// Admin routes
-			categories.POST("", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), categoryHandler.CreateCategory)
-			categories.PUT("/:id", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), categoryHandler.UpdateCategory)
-			categories.DELETE("/:id", authMiddleware.RequireAuth(), authMiddleware.RequireAdmin(), categoryHandler.DeleteCategory)
-		}
-
-		// Quiz routes
-		quizzes := api.Group("/quizzes")
-		{
-			quizzes.GET("", quizHandler.GetAllQuizzes)
-			quizzes.GET("/:id", quizHandler.GetQuizByID)
-			quizzes.GET("/public", quizHandler.GetPublicQuizzes)
-			quizzes.GET("/difficulty/:difficulty", quizHandler.GetQuizzesByDifficulty)
-			quizzes.GET("/paged", quizHandler.GetPagedQuizzes)
-
-			// Protected routes
-			quizzes.POST("", authMiddleware.RequireAuth(), quizHandler.CreateQuiz)
-			quizzes.PUT("/:id", authMiddleware.RequireAuth(), quizHandler.UpdateQuiz)
-			quizzes.DELETE("/:id", authMiddleware.RequireAuth(), quizHandler.DeleteQuiz)
-		}
-
-		// Question routes
-		questions := api.Group("/questions")
-		{
-			questions.GET("/:id", questionHandler.GetQuestionByID)
-			questions.GET("/quiz/:quizId", questionHandler.GetQuestionsByQuizID)
-			questions.POST("", authMiddleware.RequireAuth(), questionHandler.CreateQuestion)
-			questions.POST("/batch", authMiddleware.RequireAuth(), questionHandler.CreateBatchQuestions)
-			questions.PUT("/:id", authMiddleware.RequireAuth(), questionHandler.UpdateQuestion)
-			questions.DELETE("/:id", authMiddleware.RequireAuth(), questionHandler.DeleteQuestion)
-		}
-
-		// Room routes
-		rooms := api.Group("/rooms")
-		{
-			rooms.GET("/:code", roomHandler.GetRoomByCode)
-			rooms.GET("/waiting", roomHandler.GetWaitingRooms)
-			rooms.GET("/available", roomHandler.GetAvailableRooms)
-
-			// Protected/Optional auth routes
-			rooms.POST("", authMiddleware.RequireAuth(), roomHandler.CreateRoom)
-			rooms.POST("/join", authMiddleware.OptionalAuth(), roomHandler.JoinRoomByCode)
-			rooms.POST("/join/:roomId", authMiddleware.OptionalAuth(), roomHandler.JoinRoomByID)
-			rooms.DELETE("/leave/:roomId", authMiddleware.OptionalAuth(), roomHandler.LeaveRoom)
-			rooms.PATCH("/close/:roomId", authMiddleware.RequireAuth(), roomHandler.CloseRoom)
-			rooms.PATCH("/:roomId", authMiddleware.RequireAuth(), roomHandler.UpdateRoom)
-			rooms.POST("/start/:roomId", authMiddleware.RequireAuth(), roomHandler.StartGame)
-		}
-
-		// Chat routes
-		chat := api.Group("/chat")
-		{
-			chat.GET("/room/:roomId", chatHandler.GetChatHistory)
-			chat.POST("/send", authMiddleware.OptionalAuth(), chatHandler.SendMessage)
-		}
-
-		// Game routes
-		game := api.Group("/game")
-		{
-			game.GET("/state/:roomId", authMiddleware.OptionalAuth(), gameHandler.GetGameState)
-			game.POST("/init/:roomId", authMiddleware.RequireAuth(), gameHandler.InitGame)
-			game.POST("/start/:roomId", authMiddleware.RequireAuth(), gameHandler.StartGame)
-		}
+	// Setup routes using router package
+	handlers := &infrarouter.Handlers{
+		Auth:      authHandler,
+		User:      userHandler,
+		Category:  categoryHandler,
+		Quiz:      quizHandler,
+		Question:  questionHandler,
+		Room:      roomHandler,
+		Chat:      chatHandler,
+		Game:      gameHandler,
+		WebSocket: wsHandler,
+		Auth0:     authMiddleware,
 	}
 
-	// Health check
-	router.GET("/health", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"status": "ok"})
-	})
+	infrarouter.SetupRoutes(router, handlers, cfg.CORS.AllowedOrigins)
 
 	// Create HTTP server
 	srv := &http.Server{

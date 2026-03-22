@@ -154,13 +154,3 @@ type PlayerAnswer struct {
 	IsCorrect       bool
 	Score           int
 }
-
-// ChatMessageResponse represents a chat message in responses
-type ChatMessageResponse struct {
-	ID        uint    `json:"id"`
-	RoomID    uint    `json:"roomId"`
-	UserID    *uint   `json:"userId,omitempty"`
-	Username  string  `json:"username"`
-	Message   string  `json:"message"`
-	CreatedAt string  `json:"createdAt"`
-}
