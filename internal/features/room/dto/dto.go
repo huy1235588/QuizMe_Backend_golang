@@ -3,10 +3,11 @@ package dto
 import (
 	"time"
 
-	"github.com/huy/quizme-backend/internal/features/room/domain"
-	quizdto "github.com/huy/quizme-backend/internal/features/quiz/dto"
 	"github.com/huy/quizme-backend/internal/domain/enums"
 	"github.com/huy/quizme-backend/internal/dto/response"
+	quizdto "github.com/huy/quizme-backend/internal/features/quiz/dto"
+	"github.com/huy/quizme-backend/internal/features/room/domain"
+	userdto "github.com/huy/quizme-backend/internal/features/user/dto"
 )
 
 // ==== REQUEST DTOs ====
@@ -97,6 +98,23 @@ type ChatMessageResponse struct {
 
 // ==== CONVERSION FUNCTIONS ====
 
+// userDTOToResponse converts a user DTO UserResponse to response UserResponse
+func userDTOToResponse(userResp *userdto.UserResponse) *response.UserResponse {
+	if userResp == nil {
+		return nil
+	}
+	return &response.UserResponse{
+		ID:        userResp.ID,
+		Username:  userResp.Username,
+		Email:     userResp.Email,
+		FullName:  userResp.FullName,
+		AvatarURL: userResp.ProfileImage,
+		IsActive:  userResp.IsActive,
+		CreatedAt: userResp.CreatedAt,
+		UpdatedAt: userResp.UpdatedAt,
+	}
+}
+
 // FromRoom converts a Room domain model to RoomResponse
 func FromRoom(room *domain.Room) *RoomResponse {
 	resp := &RoomResponse{
@@ -126,7 +144,7 @@ func FromRoom(room *domain.Room) *RoomResponse {
 
 	// Add host info
 	if room.Host != nil {
-		resp.Host = response.FromUser(room.Host)
+		resp.Host = userDTOToResponse(userdto.FromUser(room.Host))
 	}
 
 	// Add time info
@@ -168,7 +186,7 @@ func FromRoomParticipant(participant *domain.RoomParticipant) *ParticipantRespon
 	}
 
 	if participant.User != nil {
-		resp.User = response.FromUser(participant.User)
+		resp.User = userDTOToResponse(userdto.FromUser(participant.User))
 	}
 
 	return resp
@@ -186,7 +204,7 @@ func FromRoomChat(chat *domain.RoomChat) *ChatMessageResponse {
 	}
 
 	if chat.User != nil {
-		resp.User = response.FromUser(chat.User)
+		resp.User = userDTOToResponse(userdto.FromUser(chat.User))
 		resp.DisplayName = chat.User.Username
 	} else if chat.GuestName != nil {
 		resp.DisplayName = *chat.GuestName

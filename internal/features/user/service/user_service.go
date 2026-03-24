@@ -1,15 +1,23 @@
 package service
 
 import (
+	"crypto/rand"
 	"errors"
+	"math/big"
 
+	"github.com/huy/quizme-backend/internal/domain/enums"
+	"github.com/huy/quizme-backend/internal/features/user/domain"
 	"github.com/huy/quizme-backend/internal/features/user/dto"
 	"github.com/huy/quizme-backend/internal/features/user/repository"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrUserNotFound   = errors.New("user not found")
+	ErrUsernameExists = errors.New("username already exists")
+	ErrEmailExists    = errors.New("email already exists")
+	ErrInvalidRole    = errors.New("invalid role specified")
 )
 
 type userService struct {
@@ -84,6 +92,91 @@ func (s *userService) GetTopUsers(limit int) ([]dto.UserResponse, error) {
 	return responses, nil
 }
 
+// CreateUser creates a new user (admin only)
+func (s *userService) CreateUser(req *dto.CreateUserRequest) (*dto.UserResponse, error) {
+	// Check username uniqueness
+	exists, err := s.userRepo.ExistsByUsername(req.Username)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, ErrUsernameExists
+	}
+
+	// Check email uniqueness
+	exists, err = s.userRepo.ExistsByEmail(req.Email)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
+		return nil, ErrEmailExists
+	}
+
+	// Handle password
+	var password string
+	if req.Password != nil && *req.Password != "" {
+		password = *req.Password
+	} else {
+		password = generateRandomPassword(12)
+	}
+
+	// Hash password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	// Determine role (default to USER)
+	role := enums.RoleUser
+	if req.Role != nil {
+		if !req.Role.IsValid() {
+			return nil, ErrInvalidRole
+		}
+		role = *req.Role
+	}
+
+	// Determine isActive (default to true)
+	isActive := true
+	if req.IsActive != nil {
+		isActive = *req.IsActive
+	}
+
+	// Create user
+	user := &domain.User{
+		Username: req.Username,
+		Email:    req.Email,
+		Password: string(hashedPassword),
+		FullName: req.FullName,
+		Role:     role,
+		IsActive: isActive,
+	}
+
+	if err := s.userRepo.Create(user); err != nil {
+		return nil, err
+	}
+
+	// Create user profile
+	profile := &domain.UserProfile{
+		UserID: user.ID,
+	}
+	if err := s.userProfileRepo.Create(profile); err != nil {
+		return nil, err
+	}
+
+	return dto.FromUser(user), nil
+}
+
+// generateRandomPassword generates a secure random password
+func generateRandomPassword(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+	b := make([]byte, length)
+	for i := range b {
+		n, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
+		b[i] = charset[n.Int64()]
+	}
+	return string(b)
+}
+
 func (s *userService) UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.UserResponse, error) {
 	user, err := s.userRepo.FindByID(id)
 	if err != nil {
@@ -93,19 +186,58 @@ func (s *userService) UpdateUser(id uint, req *dto.UpdateUserRequest) (*dto.User
 		return nil, err
 	}
 
-	// Update fields
-	if req.Username != nil && *req.Username != "" {
+	// Update username with uniqueness check
+	if req.Username != nil && *req.Username != "" && *req.Username != user.Username {
+		exists, err := s.userRepo.ExistsByUsername(*req.Username)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			return nil, ErrUsernameExists
+		}
 		user.Username = *req.Username
 	}
-	if req.Email != nil && *req.Email != "" {
+
+	// Update email with uniqueness check
+	if req.Email != nil && *req.Email != "" && *req.Email != user.Email {
+		exists, err := s.userRepo.ExistsByEmail(*req.Email)
+		if err != nil {
+			return nil, err
+		}
+		if exists {
+			return nil, ErrEmailExists
+		}
 		user.Email = *req.Email
 	}
+
+	// Update full name
 	if req.FullName != nil && *req.FullName != "" {
 		user.FullName = *req.FullName
 	}
+
+	// Update and hash password if provided
+	if req.Password != nil && *req.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		user.Password = string(hashedPassword)
+	}
+
+	// Update role if provided
+	if req.Role != nil {
+		if !req.Role.IsValid() {
+			return nil, ErrInvalidRole
+		}
+		user.Role = *req.Role
+	}
+
+	// Update profile image
 	if req.ProfileImage != nil {
 		user.ProfileImage = req.ProfileImage
 	}
+
+	// Update active status
 	if req.IsActive != nil {
 		user.IsActive = *req.IsActive
 	}

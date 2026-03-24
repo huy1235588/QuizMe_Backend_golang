@@ -54,10 +54,21 @@ func FromUserWithImageURL(user *domain.User, imageURL string) *UserResponse {
 
 // UpdateUserRequest represents a request to update user information
 type UpdateUserRequest struct {
-	Username     *string `json:"username,omitempty"`
-	Email        *string `json:"email,omitempty"`
-	FullName     *string `json:"fullName,omitempty"`
-	Password     *string `json:"password,omitempty"`
-	ProfileImage *string `json:"profileImage,omitempty"`
-	IsActive     *bool   `json:"isActive,omitempty"`
+	Username     *string     `json:"username,omitempty"`
+	Email        *string     `json:"email,omitempty"`
+	FullName     *string     `json:"fullName,omitempty"`
+	Password     *string     `json:"password,omitempty"`
+	ProfileImage *string     `json:"profileImage,omitempty"`
+	Role         *enums.Role `json:"role,omitempty"`
+	IsActive     *bool       `json:"isActive,omitempty"`
+}
+
+// CreateUserRequest represents a request to create a new user (admin only)
+type CreateUserRequest struct {
+	Username string      `json:"username" validate:"required,min=2,max=50"`
+	Email    string      `json:"email" validate:"required,email,max=100"`
+	FullName string      `json:"fullName" validate:"required,max=100"`
+	Password *string     `json:"password,omitempty" validate:"omitempty,min=6,max=100"`
+	Role     *enums.Role `json:"role,omitempty"`
+	IsActive *bool       `json:"isActive,omitempty"`
 }

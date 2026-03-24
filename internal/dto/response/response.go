@@ -45,8 +45,7 @@ type UserResponse struct {
 	ID        uint    `json:"id"`
 	Username  string  `json:"username"`
 	Email     string  `json:"email"`
-	FirstName string  `json:"firstName"`
-	LastName  string  `json:"lastName"`
+	FullName  string  `json:"fullName"`
 	AvatarURL *string `json:"avatarUrl,omitempty"`
 	IsActive  bool    `json:"isActive"`
 	CreatedAt string  `json:"createdAt"`
@@ -55,27 +54,20 @@ type UserResponse struct {
 
 // ChatMessageResponse represents a chat message in responses
 type ChatMessageResponse struct {
-	ID        uint    `json:"id"`
-	RoomID    uint    `json:"roomId"`
-	UserID    *uint   `json:"userId,omitempty"`
-	Username  string  `json:"username"`
-	Content   string  `json:"content"`
-	CreatedAt string  `json:"createdAt"`
+	ID        uint   `json:"id"`
+	RoomID    uint   `json:"roomId"`
+	UserID    *uint  `json:"userId,omitempty"`
+	Username  string `json:"username"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"createdAt"`
 }
 
 // GameResultResponse represents game result data in responses
 type GameResultResponse struct {
-	ID             uint    `json:"id"`
-	RoomID         uint    `json:"roomId"`
-	UserID         uint    `json:"userId"`
-	Score          int     `json:"score"`
-	CorrectAnswers int     `json:"correctAnswers"`
-	CreatedAt      string  `json:"createdAt"`
-}
-
-// FromUser converts a user domain model to UserResponse
-func FromUser(user interface{}) *UserResponse {
-	// This is a placeholder that will need to be implemented
-	// when we have the actual user domain model
-	return nil
+	ID             uint   `json:"id"`
+	RoomID         uint   `json:"roomId"`
+	UserID         uint   `json:"userId"`
+	Score          int    `json:"score"`
+	CorrectAnswers int    `json:"correctAnswers"`
+	CreatedAt      string `json:"createdAt"`
 }

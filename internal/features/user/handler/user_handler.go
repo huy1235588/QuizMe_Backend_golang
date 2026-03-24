@@ -130,7 +130,7 @@ func (h *UserHandler) GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(response.FromUser(user), "User profile retrieved successfully"))
+	c.JSON(http.StatusOK, response.Success(user, "User profile retrieved successfully"))
 }
 
 // GetCurrentUserProfile handles getting the current user's profile
@@ -148,7 +148,7 @@ func (h *UserHandler) GetCurrentUserProfile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(response.FromUser(user), "Profile retrieved successfully"))
+	c.JSON(http.StatusOK, response.Success(user, "Profile retrieved successfully"))
 }
 
 // UploadAvatar handles avatar upload for current user
@@ -246,15 +246,71 @@ func (h *UserHandler) RemoveAvatar(c *gin.Context) {
 // CreateUser handles user creation (admin only)
 // POST /api/users/create
 func (h *UserHandler) CreateUser(c *gin.Context) {
-	// TODO: Implement user creation
-	c.JSON(http.StatusNotImplemented, response.Error("User creation not implemented yet"))
+	var req userdto.CreateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, response.Error("Invalid request body"))
+		return
+	}
+
+	user, err := h.userService.CreateUser(&req)
+	if err != nil {
+		if errors.Is(err, service.ErrUsernameExists) {
+			c.JSON(http.StatusConflict, response.Error("Username already exists"))
+			return
+		}
+		if errors.Is(err, service.ErrEmailExists) {
+			c.JSON(http.StatusConflict, response.Error("Email already exists"))
+			return
+		}
+		if errors.Is(err, service.ErrInvalidRole) {
+			c.JSON(http.StatusBadRequest, response.Error("Invalid role specified"))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, response.Error("Failed to create user"))
+		return
+	}
+
+	c.JSON(http.StatusCreated, response.Success(user, "User created successfully"))
 }
 
 // UpdateUser handles user update (admin only)
 // PUT /api/users/:id
 func (h *UserHandler) UpdateUser(c *gin.Context) {
-	// TODO: Implement user update
-	c.JSON(http.StatusNotImplemented, response.Error("User update not implemented yet"))
+	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, response.Error("Invalid user ID"))
+		return
+	}
+
+	var req userdto.UpdateUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, response.Error("Invalid request body"))
+		return
+	}
+
+	user, err := h.userService.UpdateUser(uint(id), &req)
+	if err != nil {
+		if errors.Is(err, service.ErrUserNotFound) {
+			c.JSON(http.StatusNotFound, response.Error("User not found"))
+			return
+		}
+		if errors.Is(err, service.ErrUsernameExists) {
+			c.JSON(http.StatusConflict, response.Error("Username already exists"))
+			return
+		}
+		if errors.Is(err, service.ErrEmailExists) {
+			c.JSON(http.StatusConflict, response.Error("Email already exists"))
+			return
+		}
+		if errors.Is(err, service.ErrInvalidRole) {
+			c.JSON(http.StatusBadRequest, response.Error("Invalid role specified"))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, response.Error("Failed to update user"))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Success(user, "User updated successfully"))
 }
 
 // DeleteUser handles user deletion (admin only)
