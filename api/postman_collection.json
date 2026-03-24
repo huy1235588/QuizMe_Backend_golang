@@ -1,0 +1,915 @@
+{
+  "info": {
+    "name": "QuizMe API",
+    "description": "Complete API collection for QuizMe Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "12345678"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{ACCESS_TOKEN}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "REFRESH_TOKEN",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', response.accessToken);",
+                  "    pm.collectionVariables.set('REFRESH_TOKEN', response.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"confirmPassword\": \"password123\",\n  \"fullName\": \"Test User\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', response.accessToken);",
+                  "    pm.collectionVariables.set('REFRESH_TOKEN', response.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"admin\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.collectionVariables.set('ACCESS_TOKEN', response.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{REFRESH_TOKEN}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/refresh-token",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/auth/logout",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Users",
+      "item": [
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Top Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/top?limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "top"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/count",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "count"]
+            }
+          }
+        },
+        {
+          "name": "Get Paged Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/paged?page=1&size=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "paged"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Current User Profile",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/profile",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Upload Avatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/avatar/upload",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "avatar", "upload"]
+            }
+          }
+        },
+        {
+          "name": "Remove Avatar",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/avatar",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "avatar"]
+            }
+          }
+        },
+        {
+          "name": "Update User (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/users/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Categories",
+      "item": [
+        {
+          "name": "Get All Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/categories",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        },
+        {
+          "name": "Get Category By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/categories/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "categories", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Active Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/categories/active",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "categories", "active"]
+            }
+          }
+        },
+        {
+          "name": "Create Category (Admin)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Science\",\n  \"description\": \"Science related quizzes\",\n  \"iconUrl\": \"https://example.com/icon.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/categories",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Quizzes",
+      "item": [
+        {
+          "name": "Get All Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes"]
+            }
+          }
+        },
+        {
+          "name": "Get Quiz By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Public Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/public",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "public"]
+            }
+          }
+        },
+        {
+          "name": "Get Quizzes By Difficulty",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/difficulty/MEDIUM",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "difficulty", "MEDIUM"]
+            }
+          }
+        },
+        {
+          "name": "Get Paged Quizzes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/paged?page=1&size=10&difficulty=MEDIUM",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "paged"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "difficulty",
+                  "value": "MEDIUM"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"General Knowledge Quiz\",\n  \"description\": \"Test your general knowledge\",\n  \"categoryIds\": [1, 2],\n  \"difficulty\": \"MEDIUM\",\n  \"isPublic\": true,\n  \"questions\": [\n    {\n      \"content\": \"What is the capital of France?\",\n      \"timeLimit\": 30,\n      \"points\": 100,\n      \"orderNumber\": 1,\n      \"type\": \"QUIZ\",\n      \"options\": [\n        {\n          \"content\": \"Paris\",\n          \"isCorrect\": true\n        },\n        {\n          \"content\": \"London\",\n          \"isCorrect\": false\n        },\n        {\n          \"content\": \"Berlin\",\n          \"isCorrect\": false\n        },\n        {\n          \"content\": \"Madrid\",\n          \"isCorrect\": false\n        }\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes"]
+            }
+          }
+        },
+        {
+          "name": "Update Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Quiz Title\",\n  \"difficulty\": \"HARD\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Quiz",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/quizzes/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "quizzes", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Questions",
+      "item": [
+        {
+          "name": "Get Question By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/questions/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "questions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Questions By Quiz ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/questions/quiz/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "questions", "quiz", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Question",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 1,\n  \"content\": \"What is 2+2?\",\n  \"timeLimit\": 30,\n  \"points\": 100,\n  \"orderNumber\": 1,\n  \"type\": \"QUIZ\",\n  \"options\": [\n    {\n      \"content\": \"3\",\n      \"isCorrect\": false\n    },\n    {\n      \"content\": \"4\",\n      \"isCorrect\": true\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/questions",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "questions"]
+            }
+          }
+        },
+        {
+          "name": "Create Batch Questions",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quizId\": 1,\n  \"questions\": [\n    {\n      \"content\": \"Question 1\",\n      \"timeLimit\": 30,\n      \"points\": 100,\n      \"orderNumber\": 1,\n      \"type\": \"QUIZ\",\n      \"options\": [\n        {\"content\": \"A\", \"isCorrect\": true},\n        {\"content\": \"B\", \"isCorrect\": false}\n      ]\n    },\n    {\n      \"content\": \"Question 2\",\n      \"timeLimit\": 30,\n      \"points\": 100,\n      \"orderNumber\": 2,\n      \"type\": \"QUIZ\",\n      \"options\": [\n        {\"content\": \"A\", \"isCorrect\": false},\n        {\"content\": \"B\", \"isCorrect\": true}\n      ]\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/questions/batch",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "questions", "batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Rooms",
+      "item": [
+        {
+          "name": "Get Room By Code",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/ABC123",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "ABC123"]
+            }
+          }
+        },
+        {
+          "name": "Get Waiting Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/waiting",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "waiting"]
+            }
+          }
+        },
+        {
+          "name": "Get Available Rooms",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/available?limit=20",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "available"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Room",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Fun Quiz Room\",\n  \"quizId\": 1,\n  \"maxPlayers\": 10,\n  \"password\": \"\",\n  \"isPublic\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms"]
+            }
+          }
+        },
+        {
+          "name": "Join Room By Code",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"ABC123\",\n  \"guestName\": \"Guest Player\",\n  \"password\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/join",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "join"]
+            }
+          }
+        },
+        {
+          "name": "Leave Room",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/leave/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "leave", "1"]
+            }
+          }
+        },
+        {
+          "name": "Start Game (Host)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/rooms/start/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "rooms", "start", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Chat",
+      "item": [
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/chat/room/1?limit=50",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "chat", "room", "1"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"roomId\": 1,\n  \"content\": \"Hello everyone!\",\n  \"guestName\": \"Guest123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{BASE_URL}}/api/chat/send",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "chat", "send"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Game",
+      "item": [
+        {
+          "name": "Get Game State",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/game/state/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "game", "state", "1"]
+            }
+          }
+        },
+        {
+          "name": "Init Game (Host)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/game/init/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "game", "init", "1"]
+            }
+          }
+        },
+        {
+          "name": "Start Game (Host)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{ACCESS_TOKEN}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/game/start/1",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "game", "start", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Health Check",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/health",
+              "host": ["{{BASE_URL}}"],
+              "path": ["health"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

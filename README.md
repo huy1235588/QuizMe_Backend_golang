@@ -195,86 +195,68 @@ make docker-build  # Build Docker image
 make docker-run    # Run with Docker Compose
 ```
 
-## 🔌 API Endpoints
+## 📖 API Documentation
 
-### Authentication
+Comprehensive API documentation for frontend developers:
 
+### 📚 Documentation Files
+
+- **[API_DOCUMENTATION.md](./API_DOCUMENTATION.md)** - Complete API reference
+  - All endpoints with request/response schemas
+  - WebSocket API documentation
+  - Data models and enums
+  - Error handling guide
+
+- **[API_QUICK_START.md](./API_QUICK_START.md)** - Quick integration guide
+  - Code examples for JavaScript/TypeScript
+  - Authentication flow implementation
+  - WebSocket integration
+  - React hooks examples
+  - Best practices
+
+- **[api/postman_collection.json](./api/postman_collection.json)** - Postman/Thunder Client collection
+  - Ready-to-use API collection
+  - Auto-saves tokens after login
+  - All endpoints organized by feature
+
+### 🚀 Quick API Overview
+
+For complete details, see [API_DOCUMENTATION.md](./API_DOCUMENTATION.md)
+
+#### Authentication
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login
 - `POST /api/auth/logout` - Logout
 - `POST /api/auth/refresh-token` - Refresh access token
 
-### Users
-
+#### Users
 - `GET /api/users/:id` - Get user by ID
-- `GET /api/users/top` - Get top users by score
-- `GET /api/users/count` - Get total user count
-- `GET /api/users/paged` - Get paginated users
-- `GET /api/users/profile/:id` - Get user profile
-- `GET /api/users/profile` - Get current user profile (auth required)
-- `POST /api/users/avatar/upload` - Upload avatar (auth required)
-- `DELETE /api/users/avatar` - Remove avatar (auth required)
-- `POST /api/users/create` - Create user (admin only)
-- `PUT /api/users/:id` - Update user (admin only)
-- `DELETE /api/users/:id` - Delete user (admin only)
-- `PUT /api/users/:id/lock` - Lock/unlock user (admin only)
+- `GET /api/users/profile` - Get current user profile 🔒
+- `POST /api/users/avatar/upload` - Upload avatar 🔒
+- And more... (see full documentation)
 
-### Categories
-
-- `GET /api/categories` - Get all categories
-- `GET /api/categories/:id` - Get category by ID
-- `GET /api/categories/active` - Get active categories
-- `POST /api/categories` - Create category (admin only)
-- `PUT /api/categories/:id` - Update category (admin only)
-- `DELETE /api/categories/:id` - Delete category (admin only)
-
-### Quizzes
-
+#### Quizzes & Questions
 - `GET /api/quizzes` - Get all quizzes
-- `GET /api/quizzes/:id` - Get quiz by ID
-- `GET /api/quizzes/public` - Get public quizzes
-- `GET /api/quizzes/difficulty/:difficulty` - Get quizzes by difficulty
-- `GET /api/quizzes/paged` - Get paginated quizzes
-- `POST /api/quizzes` - Create quiz (auth required)
-- `PUT /api/quizzes/:id` - Update quiz (auth required)
-- `DELETE /api/quizzes/:id` - Delete quiz (auth required)
+- `GET /api/quizzes/:id` - Get quiz details
+- `POST /api/quizzes` - Create quiz 🔒
+- `GET /api/questions/quiz/:quizId` - Get quiz questions
+- And more...
 
-### Questions
+#### Rooms & Game
+- `POST /api/rooms` - Create room 🔒
+- `POST /api/rooms/join` - Join room 🔓
+- `POST /api/rooms/start/:roomId` - Start game 🔒
+- `GET /api/game/state/:roomId` - Get game state 🔓
+- And more...
 
-- `GET /api/questions/:id` - Get question by ID
-- `GET /api/questions/quiz/:quizId` - Get questions by quiz ID
-- `POST /api/questions` - Create question (auth required)
-- `POST /api/questions/batch` - Create multiple questions (auth required)
-- `PUT /api/questions/:id` - Update question (auth required)
-- `DELETE /api/questions/:id` - Delete question (auth required)
+#### WebSocket
+- `ws://localhost:8080/ws` - Real-time game updates
+- Message types: `GAME_START`, `QUESTION`, `ANSWER`, `LEADERBOARD`, etc.
 
-### Rooms
-
-- `GET /api/rooms/:code` - Get room by code
-- `GET /api/rooms/waiting` - Get waiting rooms
-- `GET /api/rooms/available` - Get available rooms
-- `POST /api/rooms` - Create room (auth required)
-- `POST /api/rooms/join` - Join room by code
-- `POST /api/rooms/join/:roomId` - Join room by ID
-- `DELETE /api/rooms/leave/:roomId` - Leave room
-- `PATCH /api/rooms/close/:roomId` - Close room (host only)
-- `PATCH /api/rooms/:roomId` - Update room (host only)
-- `POST /api/rooms/start/:roomId` - Start game (host only)
-
-### Chat
-
-- `GET /api/chat/room/:roomId` - Get chat history
-- `POST /api/chat/send` - Send chat message
-
-### Game
-
-- `GET /api/game/state/:roomId` - Get game state
-- `POST /api/game/init/:roomId` - Initialize game (host only)
-- `POST /api/game/start/:roomId` - Start game (host only)
-
-### WebSocket
-
-- `GET /ws` - WebSocket connection endpoint
+**Legend:**
+- 🔒 Requires authentication
+- 🔓 Optional authentication (guests allowed)
+- 👑 Admin only
 
 ## 🔐 Authentication
 
