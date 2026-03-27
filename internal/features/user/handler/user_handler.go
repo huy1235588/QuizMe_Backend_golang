@@ -120,17 +120,17 @@ func (h *UserHandler) GetUserProfile(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserProfile(uint(id))
+	profile, err := h.userService.GetUserProfile(uint(id))
 	if err != nil {
-		if errors.Is(err, service.ErrUserNotFound) {
-			c.JSON(http.StatusNotFound, response.Error("User not found"))
+		if errors.Is(err, service.ErrUserProfileNotFound) {
+			c.JSON(http.StatusNotFound, response.Error("User profile not found"))
 			return
 		}
 		c.JSON(http.StatusInternalServerError, response.Error("Failed to get user profile"))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(user, "User profile retrieved successfully"))
+	c.JSON(http.StatusOK, response.Success(profile, "User profile retrieved successfully"))
 }
 
 // GetCurrentUserProfile handles getting the current user's profile
@@ -142,13 +142,13 @@ func (h *UserHandler) GetCurrentUserProfile(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.GetUserProfile(currentUser.ID)
+	profile, err := h.userService.GetUserProfile(currentUser.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.Error("Failed to get profile"))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success(user, "Profile retrieved successfully"))
+	c.JSON(http.StatusOK, response.Success(profile, "Profile retrieved successfully"))
 }
 
 // UploadAvatar handles avatar upload for current user
@@ -178,13 +178,6 @@ func (h *UserHandler) UploadAvatar(c *gin.Context) {
 	contentType := fileHeader.Header.Get("Content-Type")
 	if contentType != "image/jpeg" && contentType != "image/png" && contentType != "image/jpg" && contentType != "image/webp" {
 		c.JSON(http.StatusBadRequest, response.Error("Only JPEG, PNG, and WebP images are allowed"))
-		return
-	}
-
-	// Get the user profile to use the profile ID
-	_, err = h.userService.GetUserProfile(currentUser.ID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, response.Error("Failed to get user profile"))
 		return
 	}
 
@@ -220,7 +213,7 @@ func (h *UserHandler) RemoveAvatar(c *gin.Context) {
 	}
 
 	// Get current user profile to get the avatar filename
-	user, err := h.userService.GetUserProfile(currentUser.ID)
+	user, err := h.userService.GetUserByID(currentUser.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, response.Error("Failed to get user profile"))
 		return

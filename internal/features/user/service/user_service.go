@@ -14,10 +14,11 @@ import (
 )
 
 var (
-	ErrUserNotFound   = errors.New("user not found")
-	ErrUsernameExists = errors.New("username already exists")
-	ErrEmailExists    = errors.New("email already exists")
-	ErrInvalidRole    = errors.New("invalid role specified")
+	ErrUserNotFound        = errors.New("user not found")
+	ErrUsernameExists      = errors.New("username already exists")
+	ErrEmailExists         = errors.New("email already exists")
+	ErrInvalidRole         = errors.New("invalid role specified")
+	ErrUserProfileNotFound = errors.New("user profile not found")
 )
 
 type userService struct {
@@ -271,9 +272,16 @@ func (s *userService) GetUserCount() (int64, error) {
 	return s.userRepo.Count()
 }
 
-// GetUserProfile retrieves a user's profile by ID (alias for GetUser)
-func (s *userService) GetUserProfile(id uint) (*dto.UserResponse, error) {
-	return s.GetUser(id)
+// GetUserProfile retrieves a user's profile by user ID
+func (s *userService) GetUserProfile(id uint) (*dto.UserProfileResponse, error) {
+	profile, err := s.userProfileRepo.FindByUserID(id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserProfileNotFound
+		}
+		return nil, err
+	}
+	return dto.FromUserProfile(profile), nil
 }
 
 // UpdateUserAvatar updates a user's avatar URL

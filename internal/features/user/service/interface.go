@@ -15,7 +15,7 @@ type UserService interface {
 	GetTopUsers(limit int) ([]dto.UserResponse, error)
 	GetUserByID(id uint) (*dto.UserResponse, error)
 	GetUserCount() (int64, error)
-	GetUserProfile(id uint) (*dto.UserResponse, error)
+	GetUserProfile(id uint) (*dto.UserProfileResponse, error)
 	UpdateUserAvatar(id uint, avatarURL string) error
 	RemoveUserAvatar(id uint) error
 	ToggleUserActiveStatus(id uint, isActive bool) error

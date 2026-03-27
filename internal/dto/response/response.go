@@ -2,14 +2,14 @@ package response
 
 // ErrorResponse represents an error response
 type ErrorResponse struct {
-	Status  bool        `json:"status"`
+	Status  string      `json:"status"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
 }
 
 // SuccessResponse represents a success response
 type SuccessResponse[T any] struct {
-	Status  bool   `json:"status"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
 	Data    T      `json:"data"`
 }
@@ -26,7 +26,7 @@ type PageResponse[T any] struct {
 // Error returns an error response
 func Error(message string) ErrorResponse {
 	return ErrorResponse{
-		Status:  false,
+		Status:  "error",
 		Message: message,
 	}
 }
@@ -34,7 +34,7 @@ func Error(message string) ErrorResponse {
 // Success returns a success response
 func Success[T any](data T, message string) SuccessResponse[T] {
 	return SuccessResponse[T]{
-		Status:  true,
+		Status:  "success",
 		Message: message,
 		Data:    data,
 	}

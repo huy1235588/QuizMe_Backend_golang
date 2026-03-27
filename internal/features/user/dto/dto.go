@@ -72,3 +72,37 @@ type CreateUserRequest struct {
 	Role     *enums.Role `json:"role,omitempty"`
 	IsActive *bool       `json:"isActive,omitempty"`
 }
+
+// UserProfileResponse represents a user profile in API responses
+type UserProfileResponse struct {
+	ID             uint    `json:"id"`
+	UserID         uint    `json:"userId"`
+	DateOfBirth    *string `json:"dateOfBirth,omitempty"`
+	City           *string `json:"city,omitempty"`
+	PhoneNumber    *string `json:"phoneNumber,omitempty"`
+	TotalScore     int     `json:"totalScore"`
+	QuizzesPlayed  int     `json:"quizzesPlayed"`
+	QuizzesCreated int     `json:"quizzesCreated"`
+	TotalQuizPlays int     `json:"totalQuizPlays"`
+}
+
+// FromUserProfile converts a UserProfile domain model to UserProfileResponse
+func FromUserProfile(profile *domain.UserProfile) *UserProfileResponse {
+	var dateOfBirth *string
+	if profile.DateOfBirth != nil {
+		dob := profile.DateOfBirth.Format("2006-01-02")
+		dateOfBirth = &dob
+	}
+
+	return &UserProfileResponse{
+		ID:             profile.ID,
+		UserID:         profile.UserID,
+		DateOfBirth:    dateOfBirth,
+		City:           profile.City,
+		PhoneNumber:    profile.PhoneNumber,
+		TotalScore:     profile.TotalScore,
+		QuizzesPlayed:  profile.QuizzesPlayed,
+		QuizzesCreated: profile.QuizzesCreated,
+		TotalQuizPlays: profile.TotalQuizPlays,
+	}
+}
